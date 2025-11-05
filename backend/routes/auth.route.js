@@ -10,7 +10,7 @@ router.post("/verify-otp",verifyOtp)
 router.put("/update-profile",authMiddleware,upload.single('profilePicture'),updateProfile);
 router. get("/logout",authMiddleware,logout);
 router. get("/check-auth",authMiddleware,checkAuthenticatedUser);
-router. get("/getalluser",authMiddleware,getAllUsers);
+router. get("/get-all-users",authMiddleware,getAllUsers);
 
 
 export default router
