@@ -34,15 +34,15 @@ const createStatus = async (req, res) => {
       .populate("user", "username profilePicture")
       .populate("viewers", "username profilePicture");
 
-    // //Emit Socket event
-    // if (req.io && req.socketUserMap) {
-    //   //Broadcast to all connecting user
-    //   for (const [connectedUserId, socketId] of req.socketUserMap) {
-    //     if (connectedUserId !== userId) {
-    //       req.io.to(socketId).emit("new_status", populatedStatus);
-    //     }
-    //   }
-    // }
+    //Emit Socket event
+    if (req.io && req.socketUserMap) {
+      //Broadcast to all connecting user
+      for (const [connectedUserId, socketId] of req.socketUserMap) {
+        if (connectedUserId !== userId) {
+          req.io.to(socketId).emit("new_status", populatedStatus);
+        }
+      }
+    }
 
     response(res, 201, "status created successfully", populatedStatus);
   } catch (error) {
