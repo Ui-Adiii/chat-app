@@ -9,6 +9,8 @@ import cloudinaryUpload from "../utils/cloudinaryUpload.js";
 import { generateToken } from "../utils/generateToken.js";
 import otpGenerator from "../utils/otpGenerator.js";
 import response from "../utils/responseHandler.js";
+import uploadFileImageKit from "../services/imagekit.service.js";
+
 
 const sendOtp = async (req, res) => {
   const { phoneNumber, phoneSuffix, email } = req.body;
@@ -64,7 +66,7 @@ const verifyOtp = async (req, res) => {
         String(user.emailOtp) !== String(otp) ||
         now > new Date(user.emailOtpExpiry)
       ) {
-        return response(res, 400, "invalid or ecpired otp");
+        return response(res, 400, "invalid otp");
       }
       user.isVerified = true;
       user.emailOtp = null;
@@ -106,9 +108,8 @@ const updateProfile = async (req, res) => {
 
     const user = await User.findById(userId);
     const file = req.file;
-    console.log(file);
     if (file) {
-      const result = await cloudinaryUpload(file);
+      const result = await uploadFileImageKit(file);
       user.profilePicture = result;
     } else if (req.body.profilePicture) {
       user.profilePicture = req.body.profilePicture;
