@@ -1,12 +1,12 @@
 import Conversation from "../models/conversation.model.js";
 import Status from "../models/status.model.js";
-import cloudinaryUpload from "../utils/cloudinaryUpload.js";
+import cloudinaryUpload from "../services/cloudinary.service.js";
 import response from "../utils/responseHandler.js";
 
 const createStatus = async (req, res) => {
   try {
+    
     const { content, contentType } = req.body;
-
     const userId = req.user.userId;
 
     const file = req.file;
@@ -15,7 +15,6 @@ const createStatus = async (req, res) => {
     }
     let mediaUrl = null;
     let finalContentType = contentType || "text";
-    // console.log(file.mimetype)
     if (file) {
       mediaUrl = await cloudinaryUpload(file);
       finalContentType = file.mimetype.startsWith("video") ? "video" : "image";
@@ -24,7 +23,6 @@ const createStatus = async (req, res) => {
     }
     const expiryAt = new Date();
     expiryAt.setHours(expiryAt.getHours() + 24);
-    console.log(finalContentType);
     const status = await Status.create({
       user: userId,
       content: mediaUrl || content,
@@ -36,15 +34,15 @@ const createStatus = async (req, res) => {
       .populate("user", "username profilePicture")
       .populate("viewers", "username profilePicture");
 
-    //Emit Socket event
-    if (req.io && req.socketUserMap) {
-      //Broadcast to all connecting user
-      for (const [connectedUserId, socketId] of req.socketUserMap) {
-        if (connectedUserId !== userId) {
-          req.io.to(socketId).emit("new_status", populatedStatus);
-        }
-      }
-    }
+    // //Emit Socket event
+    // if (req.io && req.socketUserMap) {
+    //   //Broadcast to all connecting user
+    //   for (const [connectedUserId, socketId] of req.socketUserMap) {
+    //     if (connectedUserId !== userId) {
+    //       req.io.to(socketId).emit("new_status", populatedStatus);
+    //     }
+    //   }
+    // }
 
     response(res, 201, "status created successfully", populatedStatus);
   } catch (error) {

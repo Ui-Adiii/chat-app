@@ -1,6 +1,6 @@
 import Conversation from "../models/conversation.model.js";
 import Message from "../models/message.model.js";
-import cloudinaryUpload from "../utils/cloudinaryUpload.js";
+import cloudinaryUpload from "../services/cloudinary.service.js";
 import response from "../utils/responseHandler.js";
 
 const sendMessage = async (req, res) => {

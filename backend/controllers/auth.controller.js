@@ -5,7 +5,7 @@ import {
   sendOtpToPhoneNumber,
   verifyOtpService,
 } from "../services/phone.service.js";
-import cloudinaryUpload from "../utils/cloudinaryUpload.js";
+import cloudinaryUpload from "../services/cloudinary.service.js";
 import { generateToken } from "../utils/generateToken.js";
 import otpGenerator from "../utils/otpGenerator.js";
 import response from "../utils/responseHandler.js";
@@ -17,7 +17,6 @@ const sendOtp = async (req, res) => {
   const otp = await otpGenerator();
   const expiry = new Date(Date.now() + 5 * 60 * 1000);
   let user;
-  console.log(email, otp);
   try {
     if (email) {
       user = await User.findOne({ email });
