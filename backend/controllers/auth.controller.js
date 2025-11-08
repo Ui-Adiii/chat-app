@@ -108,7 +108,7 @@ const updateProfile = async (req, res) => {
     const user = await User.findById(userId);
     const file = req.file;
     if (file) {
-      const result = await uploadFileImageKit(file);
+      const result = await cloudinaryUpload(file);
       user.profilePicture = result;
     } else if (req.body.profilePicture) {
       user.profilePicture = req.body.profilePicture;
