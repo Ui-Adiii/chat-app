@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 const userSchema = new mongoose.Schema(
   {
-    phoneNumber: { type: String, unique: true, sparse: true },
-    phoneSuffix: { type: String, unique: false },
+    // phoneNumber: { type: String, unique: true, sparse: true },
+    // phoneSuffix: { type: String, unique: false },
     username: { type: String },
     email: {
       type: String,

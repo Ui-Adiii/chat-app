@@ -13,7 +13,7 @@ import uploadFileImageKit from "../services/imagekit.service.js";
 
 
 const sendOtp = async (req, res) => {
-  const { phoneNumber, phoneSuffix, email } = req.body;
+  const {  email } = req.body;
   const otp = await otpGenerator();
   const expiry = new Date(Date.now() + 5 * 60 * 1000);
   let user;
@@ -32,30 +32,33 @@ const sendOtp = async (req, res) => {
 
       return response(res, 200, "Otp send to your email", { email });
     }
-    if (!phoneNumber || !phoneSuffix) {
-      return response(res, 400, "phone number and phone suffix are required");
-    }
-    const fullPhoneNumber = `${phoneSuffix}${phoneNumber}`;
-    user = await User.findOne({ phoneNumber });
-    if (!user) {
-      user = await User.create({ phoneNumber, phoneSuffix });
-    }
-    await user.save();
+    // if (!phoneNumber || !phoneSuffix) {
+    //   return response(res, 400, "phone number and phone suffix are required");
+    // }
+    // const fullPhoneNumber = `${phoneSuffix}${phoneNumber}`;
+    // user = await User.findOne({ phoneNumber });
+    // if (!user) {
+    //   user = await User.create({ phoneNumber, phoneSuffix });
+    // }
+    // await user.save();
 
-    await sendOtpToPhoneNumber(fullPhoneNumber);
+    // await sendOtpToPhoneNumber(fullPhoneNumber);
 
-    return response(res, 200, "Otp send to your phone number", user);
+    // return response(res, 200, "Otp send to your phone number", user);
   } catch (error) {
     return response(res, 500, error.message);
   }
 };
 
 const verifyOtp = async (req, res) => {
-  const { phoneNumber, phoneSuffix, email, otp } = req.body;
+  const { email, otp } = req.body;
+  console.log(email,otp);
+  
   try {
     let user;
     if (email) {
       user = await User.findOne({ email });
+      
       if (!user) {
         return response(res, 404, "user not found");
       }
@@ -71,25 +74,27 @@ const verifyOtp = async (req, res) => {
       user.emailOtp = null;
       user.emailOtpExpiry = null;
       await user.save();
-    } else {
-      if (!phoneNumber || !phoneSuffix) {
-        return response(res, 400, "phone number and phone suffix are required");
-      }
-      const fullPhoneNumber = `${phoneSuffix}${phoneNumber}`;
-      user = await User.findOne({ phoneNumber });
-
-      if (!user) {
-        return response(res, 404, "user not found");
-      }
-
-      const result = await verifyOtpService(fullPhoneNumber, otp);
-      if (result.status !== "approved") {
-        return response(res, 400, "invalid otp");
-      }
-      user.isVerified = true;
-      await user.save();
     }
+    //  else {
+    //   if (!phoneNumber || !phoneSuffix) {
+    //     return response(res, 400, "phone number and phone suffix are required");
+    //   }
+    //   const fullPhoneNumber = `${phoneSuffix}${phoneNumber}`;
+    //   user = await User.findOne({ phoneNumber });
+
+    //   if (!user) {
+    //     return response(res, 404, "user not found");
+    //   }
+
+    //   const result = await verifyOtpService(fullPhoneNumber, otp);
+    //   if (result.status !== "approved") {
+    //     return response(res, 400, "invalid otp");
+    //   }
+    //   user.isVerified = true;
+    //   await user.save();
+    // }
     const token = generateToken(user?._id);
+
     res.cookie("auth_token", token, {
       httpOnly: true,
       maxAge: 1000 * 60 * 60 * 24 * 365,
@@ -107,12 +112,13 @@ const updateProfile = async (req, res) => {
 
     const user = await User.findById(userId);
     const file = req.file;
+    
     if (file) {
       const result = await cloudinaryUpload(file);
+      
       user.profilePicture = result;
-    } else if (req.body.profilePicture) {
-      user.profilePicture = req.body.profilePicture;
-    }
+
+    } 
     if (username) user.username = username;
     if (agreed) user.agreed = agreed;
     if (about) user.about = about;
@@ -135,6 +141,7 @@ const logout = (req, res) => {
 const checkAuthenticatedUser = async (req, res) => {
   try {
     const { userId } = req.user;
+    
     if (!userId) return response(res, 401, "unauthorized user");
     const user = await User.findById(userId);
     if (!user) return response(res, 401, "user not found");
@@ -151,7 +158,7 @@ const getAllUsers = async (req, res) => {
       _id: {
         $ne: loggedInUser,
       },
-    }).select("username profilePicture lastSeen isOnline about phoneNumber phoneSuffix").lean();
+    }).select("username profilePicture lastSeen isOnline about email").lean();
     
     const usersWithConversation = await Promise.all(
       users.map(async(user)=>{

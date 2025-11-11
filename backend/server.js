@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import connectDB from './db/db.js';
-import authRouter from './routes/auth.route.js';
+import appRouter from './routes/index.route.js';
 import messageRouter from './routes/message.route.js';
 import statusRouter from './routes/status.route.js';
 import connectCloudinary from './config/cloudinary.config.js';
@@ -54,8 +54,7 @@ app.get("/",(req,res)=>{
         message:"APi Working"
     })
 })
-app.use("/api/auth",authRouter);
-app.use("/api/chat",messageRouter);
-app.use("/api/status",statusRouter);
+app.use("/api",appRouter);
+
 
 server.listen(PORT ,()=> console.log(`server started on ${PORT}`))
