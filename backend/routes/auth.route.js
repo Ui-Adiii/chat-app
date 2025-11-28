@@ -3,20 +3,18 @@ import {
   checkAuthenticatedUser,
   getAllUsers,
   logout,
-  sendOtp,
   updateProfile,
-  verifyOtp,
+  login, // Import new login function
+  register, // Import new register function
 } from "../controllers/auth.controller.js";
 import authMiddleware from "../middlewares/auth.middleware.js";
 import upload from "../middlewares/multer.middleware.js";
-// Import the rate limiters
-import { otpLimiter } from "../utils/limiter.js";
 
 const router = Router();
 
-// Apply OTP rate limiter specifically to send-otp endpoint
-router.post("/send-otp", otpLimiter, sendOtp);
-router.post("/verify-otp", verifyOtp);
+// Routes for password-based authentication
+router.post("/login", login);
+router.post("/register", register);
 router.put(
   "/update-profile",
   authMiddleware,

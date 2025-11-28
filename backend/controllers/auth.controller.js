@@ -1,108 +1,44 @@
 import User from "../models/user.model.js";
 import Conversation from "../models/conversation.model.js";
-import sendOtpToEmail from "../services/email.service.js";
-import {
-  sendOtpToPhoneNumber,
-  verifyOtpService,
-} from "../services/phone.service.js";
 import cloudinaryUpload from "../services/cloudinary.service.js";
 import { generateToken } from "../utils/generateToken.js";
-import otpGenerator from "../utils/otpGenerator.js";
 import response from "../utils/responseHandler.js";
 import uploadFileImageKit from "../services/imagekit.service.js";
+import bcrypt from "bcrypt"; // Added bcrypt for password hashing
 
-
-const sendOtp = async (req, res) => {
-  const { email } = req.body;
-
-  // Validate email format
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return response(res, 400, "Valid email is required");
-  }
-
-  try {
-    // Check if user already requested OTP recently (cooldown period)
-    const existingUser = await User.findOne({ email });
-    if (existingUser && existingUser.emailOtpExpiry) {
-      const now = new Date();
-      // If OTP is still valid (within 5 minutes), check if it was requested recently
-      if (now < existingUser.emailOtpExpiry) {
-        // Check if the last OTP was requested less than 1 minute ago
-        const timeSinceLastRequest =
-          now.getTime() -
-          (existingUser.emailOtpExpiry.getTime() - 5 * 60 * 1000);
-        const minutesSinceLastRequest = Math.floor(
-          timeSinceLastRequest / (1000 * 60)
-        );
-
-        // If less than 1 minute since last request, reject
-        if (minutesSinceLastRequest < 1) {
-          return response(
-            res,
-            429,
-            "Please wait before requesting another OTP"
-          );
-        }
-      }
-    }
-
-    const otp = await otpGenerator();
-    const expiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes expiry
-    let user;
-
-    if (email) {
-      user = await User.findOne({ email });
-      if (!user) {
-        user = await User.create({ email });
-      }
-      user.emailOtp = otp;
-      user.emailOtpExpiry = expiry;
-
-      await user.save();
-
-      await sendOtpToEmail(email, otp);
-      
-
-      return response(res, 200, "OTP sent to your email", { email });
-    }
-  } catch (error) {
-    console.error("Send OTP Error:", error);
-    return response(res, 500, "Failed to send OTP. Please try again later.");
-  }
-};
-
-const verifyOtp = async (req, res) => {
-  const { email, otp } = req.body;
+// New login function for password-based authentication
+const login = async (req, res) => {
+  const { email, password } = req.body;
 
   // Validate input
-  if (!email || !otp) {
-    return response(res, 400, "Email and OTP are required");
+  if (!email || !password) {
+    return response(res, 400, "Email and password are required");
   }
 
   try {
-    let user;
-    if (email) {
-      user = await User.findOne({ email });
-
-      if (!user) {
-        return response(res, 404, "User not found");
-      }
-
-      const now = new Date();
-      if (
-        !user.emailOtp ||
-        String(user.emailOtp) !== String(otp) ||
-        now > new Date(user.emailOtpExpiry)
-      ) {
-        return response(res, 400, "Invalid or expired OTP");
-      }
-      user.isVerified = true;
-      user.emailOtp = null;
-      user.emailOtpExpiry = null;
-      await user.save();
+    // Find user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return response(res, 404, "User not found");
     }
 
-    const token = generateToken(user?._id);
+    // Check if user has a password
+    if (!user.password) {
+      return response(res, 400, "Invalid credentials");
+    }
+
+    // Compare password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return response(res, 401, "Invalid credentials");
+    }
+
+    // Update user verification status
+    user.isVerified = true;
+    await user.save();
+
+    // Generate token
+    const token = generateToken(user._id);
 
     res.cookie("auth_token", token, {
       httpOnly: true,
@@ -111,10 +47,75 @@ const verifyOtp = async (req, res) => {
       sameSite: "none",
       domain: process.env.COOKIE_DOMAIN || undefined,
     });
-    return response(res, 200, "OTP verified successfully", { token, user });
+
+    return response(res, 200, "Login successful", { token, user });
   } catch (error) {
-    console.error("Verify OTP Error:", error);
-    return response(res, 500, "Failed to verify OTP. Please try again later.");
+    console.error("Login Error:", error);
+    return response(res, 500, "Failed to login. Please try again later.");
+  }
+};
+
+// New register function for password-based registration
+const register = async (req, res) => {
+  const { email, password } = req.body;
+
+  // Validate input
+  if (!email || !password) {
+    return response(res, 400, "Email and password are required");
+  }
+
+  // Validate email format
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return response(res, 400, "Valid email is required");
+  }
+
+  // Validate password strength (at least 6 characters)
+  if (password.length < 6) {
+    return response(res, 400, "Password must be at least 6 characters long");
+  }
+
+  try {
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      if (existingUser.password) {
+        return response(res, 400, "User already exists. Please login.");
+      } else {
+        // User exists but registered with OTP, update with password
+        const hashedPassword = await bcrypt.hash(password, 10);
+        existingUser.password = hashedPassword;
+        await existingUser.save();
+        return response(res, 200, "Password set successfully", {
+          user: existingUser,
+        });
+      }
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create new user with password
+    const user = await User.create({
+      email,
+      password: hashedPassword,
+      isVerified: true, // Password users are automatically verified
+    });
+
+    // Generate token
+    const token = generateToken(user._id);
+
+    res.cookie("auth_token", token, {
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24 * 365,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+      domain: process.env.COOKIE_DOMAIN || undefined,
+    });
+
+    return response(res, 201, "Registration successful", { token, user });
+  } catch (error) {
+    console.error("Registration Error:", error);
+    return response(res, 500, "Failed to register. Please try again later.");
   }
 };
 
@@ -205,10 +206,10 @@ const getAllUsers = async (req, res) => {
 };
 
 export {
-  sendOtp,
-  verifyOtp,
   updateProfile,
   logout,
   getAllUsers,
   checkAuthenticatedUser,
+  login, // Export new login function
+  register, // Export new register function
 };

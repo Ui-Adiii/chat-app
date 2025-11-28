@@ -7,7 +7,7 @@ import appRouter from './routes/index.route.js';
 import connectCloudinary from './config/cloudinary.config.js';
 import initializeSocket from "./services/socket.service.js";
 import http from "http";
-import { globalLimiter, otpLimiter } from "./utils/limiter.js";
+import { globalLimiter } from "./utils/limiter.js";
 
 dotenv.config();
 connectDB();

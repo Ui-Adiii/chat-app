@@ -1,8 +1,6 @@
 import mongoose from "mongoose";
 const userSchema = new mongoose.Schema(
   {
-    // phoneNumber: { type: String, unique: true, sparse: true },
-    // phoneSuffix: { type: String, unique: false },
     username: { type: String },
     email: {
       type: String,
@@ -14,8 +12,7 @@ const userSchema = new mongoose.Schema(
         message: "Invalid email address format",
       },
     },
-    emailOtp: { type: String },
-    emailOtpExpiry: { type: Date },
+    password: { type: String },
     profilePicture: { type: String },
     about: { type: String },
     lastSeen: { type: Date },
