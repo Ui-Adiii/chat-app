@@ -30,7 +30,7 @@ const sendOtpToEmail = async (email, otp) => {
   if (resend) {
     try {
       const result = await resend.emails.send({
-        from: process.env.EMAIL_USER || "ChatApp <onboarding@resend.dev>",
+        from: "ChatApp <onboarding@resend.dev>",
         to: email,
         subject: "Chat App Verification",
         html,
