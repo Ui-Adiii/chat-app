@@ -4,8 +4,6 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import connectDB from './db/db.js';
 import appRouter from './routes/index.route.js';
-import messageRouter from './routes/message.route.js';
-import statusRouter from './routes/status.route.js';
 import connectCloudinary from './config/cloudinary.config.js';
 import initializeSocket from './services/socket.service.js';
 import {rateLimit} from 'express-rate-limit';
@@ -22,13 +20,11 @@ app.use(cors({
     origin: process.env.FRONTEND_URL||'http://localhost:5173',
     methods:["POST","GET","PATCH","PUT","DELETE"],
     credentials:true,
-    sameSite: "none",
-    secure: true
 }))
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,   
-  max: 100*10,                  
+  max: 1000,                  
   message: "Too many requests, please try again later.",
   standardHeaders: true,     
   legacyHeaders: false,
