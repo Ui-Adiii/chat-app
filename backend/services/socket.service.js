@@ -14,7 +14,7 @@ const initializeSocket = (server) => {
     cors: {
       origin: process.env.FRONTEND_URL || "http://localhost:5173",
       credentials: true,
-      methods: ["POST", "GET", "PATCH", "PUT", "DELETE", "OPTION"],
+      methods: ["POST", "GET", "PATCH", "PUT", "DELETE", "OPTIONS"],
     },
     pingTimeout: 60 * 1000, //disconnect inactive users or sockets after 1 mint
   });
@@ -73,11 +73,9 @@ const initializeSocket = (server) => {
 
         const senderSocketId = onlineUsers.get(senderId);
         if (senderSocketId) {
-          messageIds.forEach((msgId) => {
-            msgId.to(senderSocketId).emit("message_status_update", {
-              messageIds,
-              messageStatus: "read",
-            });
+          io.to(senderSocketId).emit("message_status_update", {
+            messageIds,
+            messageStatus: "read",
           });
         }
       } catch (error) {
@@ -133,12 +131,12 @@ const initializeSocket = (server) => {
         try {
           const message = await Message.findById(messageId);
           if (!message) return;
-          const existingIndex = message.reaction.findIndex(
+          const existingIndex = message.reactions.findIndex(
             (r) => r.user.toString() === reactionUserId
           );
           if (existingIndex > -1) {
-            const existing = message.reaction(existingIndex);
-            if (existing.emoji === emoji) {
+            const existing = message.reactions[existingIndex];
+            if (existing?.emoji === emoji) {
               message.reactions.splice(existingIndex, 1);
             } else {
               message.reactions[existingIndex].emoji = emoji;
@@ -150,7 +148,7 @@ const initializeSocket = (server) => {
           const populatedMessage = await Message.findOne({ _id: message._id })
             .populate("sender", "username profilePicture")
             .populate("receiver", "username profilePicture")
-            .populate("reaction.user", "username");
+            .populate("reactions.user", "username");
 
           const reactionUpdate = {
             messageId,

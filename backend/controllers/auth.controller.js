@@ -106,8 +106,9 @@ const verifyOtp = async (req, res) => {
     res.cookie("auth_token", token, {
       httpOnly: true,
       maxAge: 1000 * 60 * 60 * 24 * 365,
-      secure: process.env.NODE_ENV === "production", // Only secure in production
+      secure: process.env.NODE_ENV === "production",
       sameSite: "none",
+      domain: process.env.COOKIE_DOMAIN || undefined,
     });
     return response(res, 200, "OTP verified successfully", { token, user });
   } catch (error) {
@@ -143,9 +144,10 @@ const logout = (req, res) => {
   try {
     res.cookie("auth_token", "", {
       httpOnly: true,
-      expires: new Date(0), // Expire immediately
+      expires: new Date(0),
       secure: process.env.NODE_ENV === "production",
       sameSite: "none",
+      domain: process.env.COOKIE_DOMAIN || undefined,
     });
     return response(res, 200, "Logout successfully");
   } catch (error) {
