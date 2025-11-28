@@ -28,8 +28,8 @@ const sendOtp = async (req, res) => {
 
       await user.save();
 
-      sendOtpToEmail(email, otp)
-      
+      await sendOtpToEmail(email, otp)
+
       return response(res, 200, "Otp send to your email", { email });
     }
     // if (!phoneNumber || !phoneSuffix) {

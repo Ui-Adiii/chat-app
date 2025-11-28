@@ -1,14 +1,16 @@
-import nodemailer from 'nodemailer'
-import dotenv from 'dotenv';
-dotenv.config()
+import { Resend } from 'resend';
+import dotenv from "dotenv";
+dotenv.config();
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-const transporter = nodemailer.createTransport({
- service:"gmail",
-  auth: {
-    user:process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+
+// const transporter = nodemailer.createTransport({
+//  service:"gmail",
+//   auth: {
+//     user:process.env.EMAIL_USER,
+//     pass: process.env.EMAIL_PASS,
+//   },
+// });
 
 // transporter.verify((err,success)=>{
 //     if(err) console.error("gmail services failed");
@@ -41,13 +43,11 @@ const sendOtpToEmail = async (email,otp) => {
       <small style="color: #777;">This is an automated message. Please do not reply.</small>
     </div>
   `;
-  transporter
-    .sendMail({
-      from: `Chat App <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: "Chat App Verification",
-      html
-    })
-    .catch(err => console.error("Email Send Error:", err));
+  await resend.emails.send({
+    from: "Chat App <onboarding@resend.dev>",
+    to: email,
+    subject: "Chat App OTP Verification",
+    html
+  });
 }
 export default sendOtpToEmail
