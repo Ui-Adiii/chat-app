@@ -1,5 +1,5 @@
 import useStore from "@/store/useStore";
-import React, {  useState } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -64,14 +64,23 @@ const Login = () => {
         toast.info(data?.message);
         setStep(2);
       } else {
-        toast.error(data?.message);
+        // Handle different types of errors
+        if (data.message.includes("wait")) {
+          toast.warn(data.message); // Cooldown warning
+        } else if (data.message.includes("many")) {
+          toast.error("Rate limit exceeded. Please try again later."); // Rate limit error
+        } else {
+          toast.error(data.message); // Other errors
+        }
       }
     } catch (error) {
-      toast.error(error.message);
+      console.error("Send OTP error:", error);
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setloader(false);
     }
   };
+  
   const handleOtpSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -88,10 +97,18 @@ const Login = () => {
           setStep(3);
         }
       } else {
-        toast.error(data?.message);
+        // Handle different types of OTP errors
+        if (data.message.includes("expired")) {
+          toast.warn("OTP has expired. Please request a new one.");
+        } else if (data.message.includes("many")) {
+          toast.error("Too many attempts. Please try again later.");
+        } else {
+          toast.error(data.message);
+        }
       }
     } catch (error) {
-      toast.error(error.message);
+      console.error("Verify OTP error:", error);
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setloader(false);
     }
@@ -116,7 +133,8 @@ const Login = () => {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message);
+      console.error("Update profile error:", error);
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setloader(false);
     }
@@ -163,7 +181,7 @@ const Login = () => {
                   <h1>Sending...</h1>
                 </>
               )}
-              {!loader && <h1>Send otp</h1>}
+              {!loader && <h1>Send OTP</h1>}
             </Button>
           </CardFooter>
         </Card>
@@ -174,7 +192,7 @@ const Login = () => {
          <Bar step={step} />
 
           <CardHeader>
-            <CardTitle>Enter your Otp</CardTitle>
+            <CardTitle>Enter your OTP</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleOtpSubmit}>

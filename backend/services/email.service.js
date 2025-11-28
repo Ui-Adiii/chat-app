@@ -3,22 +3,16 @@ import dotenv from 'dotenv';
 dotenv.config()
 
 const transporter = nodemailer.createTransport({
- service:"gmail",
+  service: "gmail",
   auth: {
-    user:process.env.EMAIL_USER,
+    user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
 });
 
-// transporter.verify((err,success)=>{
-//     if(err) console.error("gmail services failed");
-//     if(success){
-//         console.log('gmail configured properly ready to send email')
-//     }
-// })
-
-const sendOtpToEmail = async (email,otp) => {
-      const html = `
+const sendOtpToEmail = async (email, otp) => {
+  try {
+    const html = `
     <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
       <h2 style="color: #075e54;">🔐 Chat App Web Verification</h2>
       
@@ -41,11 +35,21 @@ const sendOtpToEmail = async (email,otp) => {
       <small style="color: #777;">This is an automated message. Please do not reply.</small>
     </div>
   `;
-  await  transporter.sendMail({
-    from: `chat-app < ${process.env.EMAIL_USER}>`,
-    to: email,
-    subject: "Chat App Verification", 
-    html
-  });
-}
+
+    const mailOptions = {
+      from: `"ChatApp" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Chat App Verification",
+      html,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log("OTP email sent:", info.messageId);
+    return info;
+  } catch (error) {
+    console.error("Error sending OTP email:", error);
+    throw new Error("Failed to send OTP email");
+  }
+};
+
 export default sendOtpToEmail
