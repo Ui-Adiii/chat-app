@@ -5,7 +5,7 @@ import upload from '../middlewares/multer.middleware.js';
 
 const router = Router();
 
-router.post("/send-message",authMiddleware,sendMessage)
+router.post("/send-message",authMiddleware,upload.single('file'),sendMessage)
 router.get("/conversations",authMiddleware,getAllConversation);
 router.get("/conversations/:conversationId/messages",authMiddleware,getMessages);
 

@@ -20,8 +20,8 @@ const userSchema = new mongoose.Schema(
     about: { type: String },
     lastSeen: { type: Date },
     isOnline: { type: Boolean, default: false },
-    isVerified: { type: Boolean, defaultL: false },
-    agreed: { type: Boolean, defaultL: false },
+    isVerified: { type: Boolean, default: false },
+    agreed: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

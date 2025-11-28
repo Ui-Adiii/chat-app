@@ -78,7 +78,15 @@ const Login = () => {
       setloader(true);
       const data = await verifyOtp(loginEmail, otp);
       if (data.status === "success") {
-        setStep(3);
+        const verifiedUser = data?.data?.user;
+        if (verifiedUser?.isVerified && verifiedUser?.username) {
+          setUser(verifiedUser);
+          resetLoginState();
+          toast.success("Logged in successfully");
+          navigate("/");
+        } else {
+          setStep(3);
+        }
       } else {
         toast.error(data?.message);
       }
@@ -115,7 +123,7 @@ const Login = () => {
   };
 
   return (
-    <div className="w-full h-screen flex items-center justify-center">
+    <div className="w-full h-screen flex items-center justify-center p-4">
       {step === 1 && (
         <Card className="w-full max-w-sm">
          <Bar step={step} />

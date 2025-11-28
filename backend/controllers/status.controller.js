@@ -31,7 +31,7 @@ const createStatus = async (req, res) => {
     });
 
     const populatedStatus = await Status.findOne({ _id: status?._id })
-      .populate("user", "username profilePicture")
+      .populate("user", "username profilePicture isOnline lastSeen")
       .populate("viewers", "username profilePicture");
 
     //Emit Socket event
@@ -57,7 +57,7 @@ const getAllStatuses = async (req, res) => {
         $gt: new Date(),
       },
     })
-      .populate("user", "username profilePicture")
+      .populate("user", "username profilePicture isOnline lastSeen")
       .populate("viewers", "username profilePicture")
       .sort({ createdAt: -1 });
 
@@ -74,16 +74,24 @@ const viewStatus = async (req, res) => {
     const status = await Status.findById(statusId);
     if (!status) return response(res, 404, "status not found");
 
-    if (!status.viewers.includes(userId)) {
+    const alreadyViewed = status.viewers.some(
+      (viewerId) => viewerId.toString() === userId
+    );
+
+    let updatedStatus = await Status.findById(statusId)
+      .populate("user", "username profilePicture isOnline lastSeen")
+      .populate("viewers", "username profilePicture");
+
+    if (!alreadyViewed) {
       status.viewers.push(userId);
       await status.save();
-
-      const updatedStatus = await Status.findById(status)
-        .populate("user", "username profilePicture")
+      updatedStatus = await Status.findById(statusId)
+        .populate("user", "username profilePicture isOnline lastSeen")
         .populate("viewers", "username profilePicture");
+
       if (req.io && req.socketUserMap) {
         const statusOwnerSocketId = req.socketUserMap.get(
-          status.user._id.toString()
+          status.user.toString()
         );
         if (statusOwnerSocketId) {
           const viewData = {
@@ -92,13 +100,16 @@ const viewStatus = async (req, res) => {
             totalViewers: updatedStatus.viewers.length,
             viewers: updatedStatus.viewers,
           };
-          req.io(statusOwnerSocketId).emit("status_viewed", viewDat);
+          req.io.to(statusOwnerSocketId).emit("status_viewed", viewData);
         }
       } else {
         console.log("status owner not connected");
       }
     }
-    return response(res, 200, "status viewed successfully");
+
+    return response(res, 200, "status viewed successfully", {
+      viewers: updatedStatus?.viewers || [],
+    });
   } catch (error) {
     return response(res, 500, error.message);
   }

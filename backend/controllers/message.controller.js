@@ -23,7 +23,7 @@ const sendMessage = async (req, res) => {
     let contentType = null;
     if (file) {
       imageOrVideoUrl = await cloudinaryUpload(file);
-      contentType = file.mimeType.startsWith("video") ? "video" : "image";
+      contentType = file.mimetype.startsWith("video") ? "video" : "image";
     } else {
       contentType = "text";
     }
@@ -50,7 +50,7 @@ const sendMessage = async (req, res) => {
       const receiverSocketId = req.socketUserMap.get(receiverId);
       if (receiverSocketId) {
         req.io.to(receiverSocketId).emit("receive_message", populatedMessage);
-        message.status = "delivered";
+        message.messageStatus = "delivered";
         await message.save();
       }
     }
