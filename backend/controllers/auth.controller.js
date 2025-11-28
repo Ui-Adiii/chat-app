@@ -97,6 +97,8 @@ const verifyOtp = async (req, res) => {
     res.cookie("auth_token", token, {
       httpOnly: true,
       maxAge: 1000 * 60 * 60 * 24 * 365,
+      secure: true,         // VERY important on render/vercel
+      sameSite: "none",
     });
     return response(res, 200, "otp verified successfully", { token, user });
   } catch (error) {
