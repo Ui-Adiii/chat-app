@@ -41,11 +41,13 @@ const sendOtpToEmail = async (email,otp) => {
       <small style="color: #777;">This is an automated message. Please do not reply.</small>
     </div>
   `;
-  return transporter.sendMail({
-    from: `chat-app < ${process.env.EMAIL_USER}>`,
-    to: email,
-    subject: "Chat App Verification", 
-    html
-  });
+  transporter
+    .sendMail({
+      from: `Chat App <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Chat App Verification",
+      html
+    })
+    .catch(err => console.error("Email Send Error:", err));
 }
 export default sendOtpToEmail
