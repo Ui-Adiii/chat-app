@@ -13,42 +13,33 @@ import uploadFileImageKit from "../services/imagekit.service.js";
 
 
 const sendOtp = async (req, res) => {
-  const {  email } = req.body;
-  const otp = await otpGenerator();
-  const expiry = new Date(Date.now() + 5 * 60 * 1000);
-  let user;
+  const { email } = req.body;
+
   try {
-    if (email) {
-      user = await User.findOne({ email });
-      if (!user) {
-        user = await User.create({ email });
-      }
-      user.emailOtp = otp;
-      user.emailOtpExpiry = expiry;
+    if (!email) return response(res, 400, "Email is required");
 
-      await user.save();
+    const otp = await otpGenerator();
+    const expiry = new Date(Date.now() + 5 * 60 * 1000);
 
-      await sendOtpToEmail(email, otp)
+    let user = await User.findOne({ email });
 
-      return response(res, 200, "Otp send to your email", { email });
+    if (!user) {
+      user = await User.create({ email });
     }
-    // if (!phoneNumber || !phoneSuffix) {
-    //   return response(res, 400, "phone number and phone suffix are required");
-    // }
-    // const fullPhoneNumber = `${phoneSuffix}${phoneNumber}`;
-    // user = await User.findOne({ phoneNumber });
-    // if (!user) {
-    //   user = await User.create({ phoneNumber, phoneSuffix });
-    // }
-    // await user.save();
 
-    // await sendOtpToPhoneNumber(fullPhoneNumber);
+    user.emailOtp = otp;
+    user.emailOtpExpiry = expiry;
+    await user.save();
 
-    // return response(res, 200, "Otp send to your phone number", user);
+    sendOtpToEmail(email, otp).catch(console.error);
+
+    return response(res, 200, "OTP sent to your email", { email });
+
   } catch (error) {
     return response(res, 500, error.message);
   }
 };
+
 
 const verifyOtp = async (req, res) => {
   const { email, otp } = req.body;
