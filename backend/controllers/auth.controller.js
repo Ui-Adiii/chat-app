@@ -61,6 +61,7 @@ const sendOtp = async (req, res) => {
       await user.save();
 
       await sendOtpToEmail(email, otp);
+      
 
       return response(res, 200, "OTP sent to your email", { email });
     }

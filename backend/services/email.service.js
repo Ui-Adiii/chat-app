@@ -35,10 +35,25 @@ const sendOtpToEmail = async (email, otp) => {
         subject: "Chat App Verification",
         html,
       });
-      console.log('OTP email sent via Resend:', result?.id)
-      return result
+
+      // Check if the result has data property (new Resend API structure)
+      if (result && result.data) {
+        console.log("OTP email sent via Resend:", result.data.id || "Success");
+        return result;
+      }
+      // Fallback for older structure or unexpected format
+      else if (result) {
+        console.log(
+          "OTP email sent via Resend:",
+          typeof result === "object" ? JSON.stringify(result) : result
+        );
+        return result;
+      }
     } catch (err) {
-      console.warn('Resend failed, falling back to nodemailer:', err?.message)
+      console.warn(
+        "Resend failed, falling back to nodemailer:",
+        err?.message || err
+      );
     }
   }
 
