@@ -3,7 +3,6 @@ import Conversation from "../models/conversation.model.js";
 import cloudinaryUpload from "../services/cloudinary.service.js";
 import { generateToken } from "../utils/generateToken.js";
 import response from "../utils/responseHandler.js";
-import uploadFileImageKit from "../services/imagekit.service.js";
 import bcrypt from "bcrypt"; // Added bcrypt for password hashing
 
 // New login function for password-based authentication
