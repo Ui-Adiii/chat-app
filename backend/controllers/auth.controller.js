@@ -28,7 +28,7 @@ const sendOtp = async (req, res) => {
 
       await user.save();
 
-      await sendOtpToEmail(email, otp);
+      await sendOtpToEmail(email, otp).catch(console.error);
 
       return response(res, 200, "Otp send to your email", { email });
     }

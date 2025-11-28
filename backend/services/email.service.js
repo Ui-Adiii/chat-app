@@ -41,7 +41,7 @@ const sendOtpToEmail = async (email,otp) => {
       <small style="color: #777;">This is an automated message. Please do not reply.</small>
     </div>
   `;
-  await  transporter.sendMail({
+  return transporter.sendMail({
     from: `chat-app < ${process.env.EMAIL_USER}>`,
     to: email,
     subject: "Chat App Verification", 
