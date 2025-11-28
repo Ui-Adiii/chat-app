@@ -2,23 +2,6 @@ import { Resend } from 'resend';
 import dotenv from "dotenv";
 dotenv.config();
 const resend = new Resend(process.env.RESEND_API_KEY);
-
-
-// const transporter = nodemailer.createTransport({
-//  service:"gmail",
-//   auth: {
-//     user:process.env.EMAIL_USER,
-//     pass: process.env.EMAIL_PASS,
-//   },
-// });
-
-// transporter.verify((err,success)=>{
-//     if(err) console.error("gmail services failed");
-//     if(success){
-//         console.log('gmail configured properly ready to send email')
-//     }
-// })
-
 const sendOtpToEmail = async (email,otp) => {
       const html = `
     <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
@@ -44,7 +27,7 @@ const sendOtpToEmail = async (email,otp) => {
     </div>
   `;
   await resend.emails.send({
-    from: "Chat App <onboarding@resend.dev>",
+    from: `Chat App <${process.env.EMAIL_USER}>`,
     to: email,
     subject: "Chat App OTP Verification",
     html
