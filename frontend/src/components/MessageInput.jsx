@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send, Image as ImageIcon, X } from "lucide-react";
@@ -25,13 +25,11 @@ const MessageInput = ({ conversationId, receiverId }) => {
   const typingTimeoutRef = useRef(null);
   const isTypingRef = useRef(false);
 
-
   useEffect(() => {
     return () => {
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
-      // Stop typing indicator when component unmounts or conversation changes
       if (isTypingRef.current && socket && conversationId && receiverId) {
         isTypingRef.current = false;
         socket.emit("typing_stop", { conversationId, receiverId });
@@ -42,18 +40,15 @@ const MessageInput = ({ conversationId, receiverId }) => {
   const handleTyping = () => {
     if (!socket || !conversationId || !receiverId || !user?._id) return;
 
-    // Always emit typing start event when user types
     if (!isTypingRef.current) {
       isTypingRef.current = true;
       socket.emit("typing_start", { conversationId, receiverId });
     }
 
-    // Clear any existing timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
 
-    // Set a new timeout to stop typing indicator
     typingTimeoutRef.current = setTimeout(() => {
       if (isTypingRef.current) {
         isTypingRef.current = false;
@@ -82,10 +77,10 @@ const MessageInput = ({ conversationId, receiverId }) => {
     }
   };
 
-  cconst handleSend = async () => {
+  const handleSend = async () => {
     if (!message.trim() && !selectedFile) return;
-  
-    setIsSending(true); // ⬅️ disable button
+
+    setIsSending(true);
     try {
       const formData = new FormData();
       formData.append("senderId", String(user._id));
@@ -93,21 +88,21 @@ const MessageInput = ({ conversationId, receiverId }) => {
       if (message.trim()) formData.append("content", message.trim());
       if (selectedFile) formData.append("file", selectedFile);
       formData.append("messageStatus", "send");
-  
+
       const response = await sendMessage(formData);
-  
+
       if (response.status === "success") {
         const savedMessage = response.data;
-  
+
         const actualConversationId =
           savedMessage?.conversation || conversationId;
-  
+
         addMessage(actualConversationId, savedMessage);
         updateConversation(actualConversationId, {
           lastMessage: savedMessage,
           unreadCount: 0,
         });
-  
+
         setMessage("");
         removeFile();
       } else {
@@ -116,10 +111,9 @@ const MessageInput = ({ conversationId, receiverId }) => {
     } catch (err) {
       toast.error("Error sending message");
     } finally {
-      setIsSending(false); // ⬅️ re-enable button
+      setIsSending(false);
     }
   };
-  
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -130,8 +124,6 @@ const MessageInput = ({ conversationId, receiverId }) => {
 
   return (
     <div className="border-t p-2 sm:p-4 bg-background shrink-0">
-  
-      {/* Preview Box */}
       {preview && (
         <div className="relative mb-3 inline-block rounded-md overflow-hidden shadow-md">
           {selectedFile?.type.startsWith("image/") ? (
@@ -147,8 +139,7 @@ const MessageInput = ({ conversationId, receiverId }) => {
               controls
             />
           )}
-  
-          {/* Remove button */}
+
           <Button
             variant="ghost"
             size="icon"
@@ -159,11 +150,8 @@ const MessageInput = ({ conversationId, receiverId }) => {
           </Button>
         </div>
       )}
-  
-      {/* Input Row */}
+
       <div className="flex items-end gap-2 sm:gap-3">
-  
-        {/* Hidden file input */}
         <input
           ref={fileInputRef}
           type="file"
@@ -171,8 +159,7 @@ const MessageInput = ({ conversationId, receiverId }) => {
           className="hidden"
           onChange={handleFileSelect}
         />
-  
-        {/* Media Upload Button */}
+
         <Button
           variant="ghost"
           size="icon"
@@ -181,8 +168,7 @@ const MessageInput = ({ conversationId, receiverId }) => {
         >
           <ImageIcon className="h-5 w-5" />
         </Button>
-  
-        {/* Textarea */}
+
         <div className="flex-1 relative">
           <Textarea
             value={message}
@@ -202,32 +188,28 @@ const MessageInput = ({ conversationId, receiverId }) => {
             rows={1}
           />
         </div>
-  
-        {/* Send Button */}
-        <Button
-  onClick={handleSend}
-  disabled={isSending || (!message.trim() && !selectedFile)}
-  size="icon"
-  className="
-    h-9 w-9 sm:h-11 sm:w-11 
-    rounded-full 
-    bg-primary text-primary-foreground
-    hover:bg-primary/90
-    disabled:opacity-50
-  "
->
-  {isSending ? (
-    <Send className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
-  ) : (
-    <Send className="h-4 w-4 sm:h-5 sm:w-5" />
-  )}
-</Button>
 
+        <Button
+          onClick={handleSend}
+          disabled={isSending || (!message.trim() && !selectedFile)}
+          size="icon"
+          className="
+            h-9 w-9 sm:h-11 sm:w-11 
+            rounded-full 
+            bg-primary text-primary-foreground
+            hover:bg-primary/90
+            disabled:opacity-50
+          "
+        >
+          {isSending ? (
+            <Send className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
+          ) : (
+            <Send className="h-4 w-4 sm:h-5 sm:w-5" />
+          )}
+        </Button>
       </div>
     </div>
   );
-  
 };
 
 export default MessageInput;
-
