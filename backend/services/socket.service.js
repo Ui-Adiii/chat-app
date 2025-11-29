@@ -100,12 +100,7 @@ const initializeSocket = (server) => {
 
     socket.on("get_user_status", (requestedUserId, callback) => {
       const isOnline = onlineUsers.has(requestedUserId);
-      console.log(
-        "get_user_status requested for:",
-        requestedUserId,
-        "Online:",
-        isOnline
-      );
+     
       callback({
         userId: requestedUserId,
         isOnline,

@@ -16,12 +16,15 @@ const MessageInput = ({ conversationId, receiverId }) => {
     selectedConversation,
     setSelectedConversation,
   } = useStore();
+  const [isSending, setIsSending] = useState(false);
+
   const [message, setMessage] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const fileInputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const isTypingRef = useRef(false);
+
 
   useEffect(() => {
     return () => {
@@ -79,76 +82,44 @@ const MessageInput = ({ conversationId, receiverId }) => {
     }
   };
 
-  const handleSend = async () => {
+  cconst handleSend = async () => {
     if (!message.trim() && !selectedFile) return;
-    if (!receiverId) {
-      toast.error("Please select a conversation");
-      return;
-    }
-    if (!user?._id) {
-      toast.error("User not authenticated");
-      return;
-    }
-
-    // Stop typing indicator
-    if (isTypingRef.current && socket) {
-      isTypingRef.current = false;
-      socket.emit("typing_stop", { conversationId, receiverId });
-    }
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-
-    const formData = new FormData();
-    // Ensure all fields are strings for FormData
-    formData.append("senderId", String(user._id));
-    formData.append("receiverId", String(receiverId));
-    if (message.trim()) {
-      formData.append("content", message.trim());
-    }
-    if (selectedFile) {
-      formData.append("file", selectedFile);
-    }
-    formData.append("messageStatus", "send");
-
+  
+    setIsSending(true); // ⬅️ disable button
     try {
+      const formData = new FormData();
+      formData.append("senderId", String(user._id));
+      formData.append("receiverId", String(receiverId));
+      if (message.trim()) formData.append("content", message.trim());
+      if (selectedFile) formData.append("file", selectedFile);
+      formData.append("messageStatus", "send");
+  
       const response = await sendMessage(formData);
+  
       if (response.status === "success") {
         const savedMessage = response.data;
-        const actualConversationId = savedMessage?.conversation || conversationId;
+  
+        const actualConversationId =
+          savedMessage?.conversation || conversationId;
+  
         addMessage(actualConversationId, savedMessage);
         updateConversation(actualConversationId, {
           lastMessage: savedMessage,
           unreadCount: 0,
         });
-
-        if (conversationId?.startsWith("new-") && actualConversationId) {
-          const participants = [savedMessage.sender, savedMessage.receiver].filter(Boolean);
-          const newConversation = {
-            _id: actualConversationId,
-            participants,
-            lastMessage: savedMessage,
-            unreadCount: 0,
-          };
-          addConversation(newConversation);
-          setSelectedConversation(newConversation);
-        } else if (selectedConversation?._id === conversationId && actualConversationId !== conversationId) {
-          setSelectedConversation({
-            ...selectedConversation,
-            _id: actualConversationId,
-          });
-        }
-
+  
         setMessage("");
         removeFile();
       } else {
         toast.error(response.message || "Failed to send message");
       }
-    } catch (error) {
+    } catch (err) {
       toast.error("Error sending message");
-      console.error(error);
+    } finally {
+      setIsSending(false); // ⬅️ re-enable button
     }
   };
+  
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -234,19 +205,24 @@ const MessageInput = ({ conversationId, receiverId }) => {
   
         {/* Send Button */}
         <Button
-          onClick={handleSend}
-          disabled={!message.trim() && !selectedFile}
-          size="icon"
-          className="
-            h-9 w-9 sm:h-11 sm:w-11 
-            rounded-full 
-            bg-primary text-primary-foreground
-            hover:bg-primary/90
-            disabled:opacity-50
-          "
-        >
-          <Send className="h-4 w-4 sm:h-5 sm:w-5" />
-        </Button>
+  onClick={handleSend}
+  disabled={isSending || (!message.trim() && !selectedFile)}
+  size="icon"
+  className="
+    h-9 w-9 sm:h-11 sm:w-11 
+    rounded-full 
+    bg-primary text-primary-foreground
+    hover:bg-primary/90
+    disabled:opacity-50
+  "
+>
+  {isSending ? (
+    <Send className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
+  ) : (
+    <Send className="h-4 w-4 sm:h-5 sm:w-5" />
+  )}
+</Button>
+
       </div>
     </div>
   );

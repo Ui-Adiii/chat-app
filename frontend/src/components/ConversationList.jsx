@@ -87,6 +87,8 @@ const ConversationList = ({ onSelectConversation, selectedConversationId }) => {
               {conversations.map((conversation) => {
                 const otherUser = getOtherParticipant(conversation);
                 if (!otherUser) return null;
+                console.log("Rendering conversation with otherUser:", otherUser);
+                console.log("Conversation otherUser online status:", otherUser.isOnline);
 
                 return (
                   <div
