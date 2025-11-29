@@ -50,43 +50,44 @@ const Login = () => {
   // New function for password-based login/register
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
+    setloader(true);
+  
     try {
-      setloader(true);
       let data;
-      
+  
       if (isRegistering) {
         data = await register(email, password);
       } else {
         data = await login(email, password);
       }
-      
-      if (data.status === "success") {
-        const user = data?.data?.user;
-        if (user?.isVerified && user?.username) {
-          setUser(user);
-          resetLoginState();
-          toast.success(isRegistering ? "Registered successfully" : "Logged in successfully");
-          navigate("/");
-        } else {
-          // For new registrations without profile, go to step 3 (profile setup)
-          if (isRegistering) {
-            setUser(user);
-            setStep(2);
-          } else {
-            toast.error("Please complete your profile first");
-            setStep(2);
-          }
-        }
-      } else {
+  
+      if (data.status !== "success") {
         toast.error(data.message);
+        return;
       }
-    } catch (error) {
-      console.error("Password auth error:", error);
-      toast.error("An unexpected error occurred. Please try again.");
+  
+      const user = data?.data?.user;
+      setUser(user);
+  
+      // NEW USERS → Go to Step 2
+      if (!user.username) {
+        setStep(2);
+        return;
+      }
+  
+      // OLD USERS → Direct Login
+      resetLoginState();
+      toast.success(isRegistering ? "Registered successfully" : "Logged in successfully");
+      navigate("/");
+  
+    } catch (err) {
+      console.error(err);
+      toast.error("Unexpected error, try again.");
     } finally {
       setloader(false);
     }
   };
+  
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
@@ -198,7 +199,7 @@ const Login = () => {
         </Card>
       )}
 
-      {/* Step 3: Profile Setup */}
+      {/* Step 2: Profile Setup */}
       {step === 2 && (
         <Card className="w-full max-w-sm">
           <CardHeader>
