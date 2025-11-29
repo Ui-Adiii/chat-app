@@ -1,24 +1,35 @@
-import { CHECK_AUTH_URL, GET_ALL_USER_URL, LOGOUT_URL, SEND_OTP_URL, UPDATE_PROFILE_URL, VERIFY_OTP_URL } from "../utils/constant";
+import {
+  CHECK_AUTH_URL,
+  GET_ALL_USER_URL,
+  LOGOUT_URL,
+  UPDATE_PROFILE_URL,
+  LOGIN_URL,
+  REGISTER_URL,
+} from "../utils/constant";
 import axiosInstance from "./url.service";
 
-const sendOtp = async (email) => {
+// New login function
+const login = async (email, password) => {
   try {
-    const response = await axiosInstance.post(SEND_OTP_URL, { email });
+    const response = await axiosInstance.post(LOGIN_URL, { email, password });
     return response.data;
   } catch (error) {
     // Return a consistent error structure
     return {
       status: "error",
       message:
-        error.response?.data?.message ||
-        "Failed to send OTP. Please try again.",
+        error.response?.data?.message || "Failed to login. Please try again.",
     };
   }
 };
 
-const verifyOtp = async (email, otp) => {
+// New register function
+const register = async (email, password) => {
   try {
-    const response = await axiosInstance.post(VERIFY_OTP_URL, { email, otp });
+    const response = await axiosInstance.post(REGISTER_URL, {
+      email,
+      password,
+    });
     return response.data;
   } catch (error) {
     // Return a consistent error structure
@@ -26,7 +37,7 @@ const verifyOtp = async (email, otp) => {
       status: "error",
       message:
         error.response?.data?.message ||
-        "Failed to verify OTP. Please try again.",
+        "Failed to register. Please try again.",
     };
   }
 };
@@ -92,4 +103,4 @@ const getAllUsers = async () => {
   }
 };
 
-export { sendOtp, verifyOtp, updateProfile, checkAuth, logOut, getAllUsers };
+export { updateProfile, checkAuth, logOut, getAllUsers, login, register };

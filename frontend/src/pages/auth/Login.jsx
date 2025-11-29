@@ -12,40 +12,33 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  sendOtp,
   updateProfile,
-  verifyOtp,
+  login, // Import new login function
+  register // Import new register function
 } from "@/services/auth.service";
 import { Loader } from "lucide-react";
-import { REGEXP_ONLY_DIGITS } from "input-otp";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from "@/components/ui/input-otp";
 import { toast } from "react-toastify";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useNavigate } from "react-router-dom";
-import Bar from "@/components/Bar";
 
 const Login = () => {
   const {
     step,
-    setEmailData,
     setStep,
     resetLoginState,
     setUser,
-    loginEmail,
   } = useStore();
   const navigate = useNavigate();
-  const [otp, setotp] = useState("");
   const [email, setemail] = useState("");
+  const [password, setpassword] = useState("");
   const [loader, setloader] = useState(false);
   const [profilePictureFile, setprofilePictureFile] = useState(null);
   const [preview, setpreview] = useState(null);
   const [username, setusername] = useState("");
   const [about, setabout] = useState("");
   const [agreed, setagreed] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+
   const handleChangeImage = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -54,60 +47,41 @@ const Login = () => {
     }
   };
 
-  const handleEmailSubmit = async (e) => {
+  // New function for password-based login/register
+  const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     try {
       setloader(true);
-      const data = await sendOtp(email);
-      if (data.status === "success") {
-        setEmailData(data?.data?.email);
-        toast.info(data?.message);
-        setStep(2);
+      let data;
+      
+      if (isRegistering) {
+        data = await register(email, password);
       } else {
-        // Handle different types of errors
-        if (data.message.includes("wait")) {
-          toast.warn(data.message); // Cooldown warning
-        } else if (data.message.includes("many")) {
-          toast.error("Rate limit exceeded. Please try again later."); // Rate limit error
-        } else {
-          toast.error(data.message); // Other errors
-        }
+        data = await login(email, password);
       }
-    } catch (error) {
-      console.error("Send OTP error:", error);
-      toast.error("An unexpected error occurred. Please try again.");
-    } finally {
-      setloader(false);
-    }
-  };
-  
-  const handleOtpSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      setloader(true);
-      const data = await verifyOtp(loginEmail, otp);
+      
       if (data.status === "success") {
-        const verifiedUser = data?.data?.user;
-        if (verifiedUser?.isVerified && verifiedUser?.username) {
-          setUser(verifiedUser);
+        const user = data?.data?.user;
+        if (user?.isVerified && user?.username) {
+          setUser(user);
           resetLoginState();
-          toast.success("Logged in successfully");
+          toast.success(isRegistering ? "Registered successfully" : "Logged in successfully");
           navigate("/");
         } else {
-          setStep(3);
+          // For new registrations without profile, go to step 3 (profile setup)
+          if (isRegistering) {
+            setUser(user);
+            setStep(2);
+          } else {
+            toast.error("Please complete your profile first");
+            setStep(2);
+          }
         }
       } else {
-        // Handle different types of OTP errors
-        if (data.message.includes("expired")) {
-          toast.warn("OTP has expired. Please request a new one.");
-        } else if (data.message.includes("many")) {
-          toast.error("Too many attempts. Please try again later.");
-        } else {
-          toast.error(data.message);
-        }
+        toast.error(data.message);
       }
     } catch (error) {
-      console.error("Verify OTP error:", error);
+      console.error("Password auth error:", error);
       toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setloader(false);
@@ -125,119 +99,108 @@ const Login = () => {
       setloader(true);
       const data = await updateProfile(form);
       if (data.status === "success") {
-        toast.success(data.message);
         setUser(data?.data);
         resetLoginState();
+        toast.success("Profile updated successfully");
         navigate("/");
       } else {
-        toast.error(data.message);
+        toast.error(data?.message);
       }
     } catch (error) {
       console.error("Update profile error:", error);
-      toast.error("An unexpected error occurred. Please try again.");
+      toast.error("Failed to update profile. Please try again.");
     } finally {
       setloader(false);
     }
   };
 
   return (
-    <div className="w-full h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      {/* Step 1: Email and Password Login */}
       {step === 1 && (
         <Card className="w-full max-w-sm">
-         <Bar step={step} />
-
           <CardHeader>
-            <CardTitle>Login to your Chat App</CardTitle>
+            <CardTitle>{isRegistering ? "Create Account" : "Login"}</CardTitle>
             <CardDescription>
-              Enter your email below to login to your account
+              {isRegistering 
+                ? "Enter your email and password to create an account" 
+                : "Enter your email and password to login"}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleEmailSubmit}>
-              <div className="flex flex-col gap-6">
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setemail(e.target.value)}
-                    placeholder="example@gmail.com"
-                    required
-                  />
-                </div>
+            <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setemail(e.target.value)}
+                  placeholder="example@gmail.com"
+                  required
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setpassword(e.target.value)}
+                  placeholder="Enter your password"
+                  required
+                  minLength={6}
+                />
               </div>
             </form>
           </CardContent>
           <CardFooter className="flex-col gap-2">
             <Button
               type="submit"
-              onClick={handleEmailSubmit}
+              onClick={handlePasswordSubmit}
               className="w-full"
               disabled={loader}
             >
               {loader && (
                 <>
                   <Loader className={` animate-spin`} />
-                  <h1>Sending...</h1>
+                  <h1>{isRegistering ? "Registering..." : "Logging in..."}</h1>
                 </>
               )}
-              {!loader && <h1>Send OTP</h1>}
+              {!loader && <h1>{isRegistering ? "Register" : "Login"}</h1>}
             </Button>
+            <div className="text-center text-sm">
+              {isRegistering ? (
+                <>
+                  Already have an account?{" "}
+                  <button 
+                    type="button"
+                    className="text-blue-500 hover:underline"
+                    onClick={() => setIsRegistering(false)}
+                  >
+                    Login
+                  </button>
+                </>
+              ) : (
+                <>
+                  Don't have an account?{" "}
+                  <button 
+                    type="button"
+                    className="text-blue-500 hover:underline"
+                    onClick={() => setIsRegistering(true)}
+                  >
+                    Register
+                  </button>
+                </>
+              )}
+            </div>
           </CardFooter>
         </Card>
       )}
 
+      {/* Step 3: Profile Setup */}
       {step === 2 && (
         <Card className="w-full max-w-sm">
-         <Bar step={step} />
-
-          <CardHeader>
-            <CardTitle>Enter your OTP</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleOtpSubmit}>
-              <div className="flex  gap-6 justify-center">
-                <InputOTP
-                  value={otp}
-                  maxLength={6}
-                  pattern={REGEXP_ONLY_DIGITS}
-                  onChange={(val) => setotp(val)}
-                >
-                    <InputOTPGroup className="gap-2.5 *:data-[slot=input-otp-slot]:rounded-md *:data-[slot=input-otp-slot]:border">
-                        <InputOTPSlot index={0} />
-                        <InputOTPSlot index={1} />
-                        <InputOTPSlot index={2} />
-                        <InputOTPSlot index={3} />
-                        <InputOTPSlot index={4} />
-                        <InputOTPSlot index={5} />
-                    </InputOTPGroup>
-                </InputOTP>
-              </div>
-            </form>
-          </CardContent>
-          <CardFooter className="flex-col gap-2">
-            <Button
-              type="submit"
-              onClick={handleOtpSubmit}
-              className="w-full"
-              disabled={loader}
-            >
-              {loader && (
-                <>
-                  <Loader className={` animate-spin`} />
-                  <h1>Verifying...</h1>
-                </>
-              )}
-              {!loader && <h1>Verify</h1>}
-            </Button>
-          </CardFooter>
-        </Card>
-      )}
-
-      {step === 3 && (
-        <Card className="w-full max-w-sm">
-          <Bar step={step} />
-
           <CardHeader>
             <CardTitle>Update Your Profile</CardTitle>
             <CardDescription>
@@ -274,19 +237,18 @@ const Login = () => {
                   onChange={handleChangeImage}
                 />
               </div>
-
-              <div className="grid gap-2">
+              <div className="flex flex-col gap-2">
                 <Label htmlFor="username">Username</Label>
                 <Input
                   id="username"
                   type="text"
-                  placeholder="Enter your UserName"
+                  placeholder="Enter your username"
                   required
                   value={username}
                   onChange={(e) => setusername(e.target.value)}
                 />
               </div>
-              <div className="grid gap-2">
+              <div className="flex flex-col gap-2">
                 <Label htmlFor="about">About</Label>
                 <Input
                   id="about"
