@@ -13,9 +13,9 @@ let io = null; // 🔥 declare globally so all functions can use it
 // -----------------------------------------------------
 const broadcastUserStatus = (userId, isOnline) => {
   if (!io) return; // safety check
-  console.log(
-    `Broadcasting status for user ${userId}: ${isOnline ? "online" : "offline"}`
-  );
+  // console.log(
+    // `Broadcasting status for user ${userId}: ${isOnline ? "online" : "offline"}`
+  // );
 
   io.emit("user_status", {
     userId,
@@ -55,7 +55,7 @@ const initializeSocket = (server) => {
   });
 
   io.on("connection", (socket) => {
-    console.log(`User connected: ${socket.id}`);
+    // console.log(`User connected: ${socket.id}`);
     let userId = null;
 
     // -------------------------------------------------
@@ -163,7 +163,7 @@ const initializeSocket = (server) => {
 
       broadcastUserStatus(userId, false);
 
-      console.log(`User disconnected: ${userId}`);
+      // console.log(`User disconnected: ${userId}`);
     });
   });
 
