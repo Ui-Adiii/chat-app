@@ -72,129 +72,117 @@ const ConversationList = ({ onSelectConversation, selectedConversationId }) => {
   }
 
   return (
-    <div className="flex flex-col min-h-0" key={updateKey}>
-  <div className="p-2 sm:p-4 border-b shrink-0">
-    <h2 className="text-base sm:text-lg font-semibold">Chats</h2>
-  </div>
+    <div className="flex flex-col h-full" key={updateKey}>
+      <div className="p-2 sm:p-4 border-b shrink-0">
+        <h2 className="text-base sm:text-lg font-semibold">Chats</h2>
+      </div>
+      <ScrollArea className="flex-1 p-1 sm:p-2 min-h-0 overflow-auto">
+        <div className="p-1 sm:p-2">
+          {conversations.length === 0 && contacts.length === 0 ? (
+            <div className="text-center text-muted-foreground py-8">
+              No conversations yet
+            </div>
+          ) : (
+            <>
+              {conversations.map((conversation) => {
+                const otherUser = getOtherParticipant(conversation);
+                if (!otherUser) return null;
+                console.log("Rendering conversation with otherUser:", otherUser);
+                console.log("Conversation otherUser online status:", otherUser.isOnline);
 
-  {/* FIX: removed overflow-auto */}
-  <ScrollArea className="flex-1 min-h-0 overflow-auto">
-    <div className="p-1 sm:p-2 min-h-0">
-      {conversations.length === 0 && contacts.length === 0 ? (
-        <div className="text-center text-muted-foreground py-8">
-          No conversations yet
+                return (
+                  <div
+                    key={conversation._id}
+                    onClick={() => onSelectConversation(conversation)}
+                    className={`p-2 sm:p-3 rounded-lg cursor-pointer transition-colors mb-1 sm:mb-2 ${
+                      selectedConversationId === conversation._id
+                        ? "bg-accent"
+                        : "hover:bg-accent/50"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="relative shrink-0">
+                        <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
+                          <AvatarImage src={otherUser.profilePicture} />
+                          <AvatarFallback>
+                            {otherUser.username?.[0]?.toUpperCase() || "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                        {otherUser.isOnline && (
+                          <div className="absolute bottom-0 right-0 h-2.5 w-2.5 sm:h-3 sm:w-3 bg-green-500 rounded-full border-2 border-background" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="font-medium truncate text-sm sm:text-base">
+                            {otherUser.username || "Unknown"}
+                          </p>
+                          {conversation.lastMessage && (
+                            <span className="text-xs text-muted-foreground shrink-0 ml-2">
+                              {formatTimestamp(conversation.lastMessage.createdAt)}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                            {getLastMessagePreview(conversation)}
+                          </p>
+                          {conversation.unreadCount > 0 && (
+                            <Badge variant="default" className="ml-2 shrink-0 text-xs">
+                              {conversation.unreadCount}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {contacts
+                .filter((u) => !conversations.some((c) => c.participants?.some((p) => p._id === u._id)))
+                .map((userItem) => (
+                  <div
+                    key={userItem._id}
+                    onClick={() =>
+                      onSelectConversation({
+                        _id: `new-${userItem._id}`,
+                        participants: [user, userItem],
+                        lastMessage: null,
+                        unreadCount: 0,
+                      })
+                    }
+                    className="p-3 rounded-lg cursor-pointer transition-colors mb-2 hover:bg-accent/50"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <Avatar className="h-12 w-12">
+                          <AvatarImage src={userItem.profilePicture} />
+                          <AvatarFallback>
+                            {userItem.username?.[0]?.toUpperCase() || "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                        {userItem.isOnline && (
+                          <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-background" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">
+                          {userItem.username || "Unknown"}
+                        </p>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {userItem.about || "No status"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </>
+          )}
         </div>
-      ) : (
-        <>
-          {conversations.map((conversation) => {
-            const otherUser = getOtherParticipant(conversation);
-            if (!otherUser) return null;
-
-            return (
-              <div
-                key={conversation._id}
-                onClick={() => onSelectConversation(conversation)}
-                className={`p-2 sm:p-3 rounded-lg cursor-pointer transition-colors mb-1 sm:mb-2 ${
-                  selectedConversationId === conversation._id
-                    ? "bg-accent"
-                    : "hover:bg-accent/50"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="relative shrink-0">
-                    <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
-                      <AvatarImage src={otherUser.profilePicture} />
-                      <AvatarFallback>
-                        {otherUser.username?.[0]?.toUpperCase() || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-
-                    {otherUser.isOnline && (
-                      <div className="absolute bottom-0 right-0 h-2.5 w-2.5 sm:h-3 sm:w-3 bg-green-500 rounded-full border-2 border-background" />
-                    )}
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="font-medium truncate text-sm sm:text-base">
-                        {otherUser.username}
-                      </p>
-
-                      {conversation.lastMessage && (
-                        <span className="text-xs text-muted-foreground ml-2">
-                          {formatTimestamp(conversation.lastMessage.createdAt)}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                        {getLastMessagePreview(conversation)}
-                      </p>
-
-                      {conversation.unreadCount > 0 && (
-                        <Badge variant="default" className="ml-2 shrink-0 text-xs">
-                          {conversation.unreadCount}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-
-          {contacts
-            .filter(
-              (u) =>
-                !conversations.some((c) =>
-                  c.participants?.some((p) => p._id === u._id)
-                )
-            )
-            .map((userItem) => (
-              <div
-                key={userItem._id}
-                onClick={() =>
-                  onSelectConversation({
-                    _id: `new-${userItem._id}`,
-                    participants: [user, userItem],
-                    lastMessage: null,
-                    unreadCount: 0,
-                  })
-                }
-                className="p-3 rounded-lg cursor-pointer transition-colors mb-2 hover:bg-accent/50"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={userItem.profilePicture} />
-                      <AvatarFallback>
-                        {userItem.username?.[0]?.toUpperCase() || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-
-                    {userItem.isOnline && (
-                      <div className="absolute bottom-0 right-0 h-3 w-3 bg-green-500 rounded-full border-2 border-background" />
-                    )}
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{userItem.username}</p>
-                    <p className="text-sm text-muted-foreground truncate">
-                      {userItem.about || "No status"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-        </>
-      )}
+      </ScrollArea>
     </div>
-  </ScrollArea>
-</div>
-
   );
 };
 
 export default ConversationList;
-
