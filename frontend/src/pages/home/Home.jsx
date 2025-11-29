@@ -34,6 +34,8 @@ const setSelectedConversation = useStore((s) => s.setSelectedConversation);
 
 const setSocket = useStore((s) => s.setSocket);
 const setIsConnected = useStore((s) => s.setIsConnected);
+const socket = useStore((s) => s.socket);
+const contacts = useStore((s) => s.contacts);
 
 const addMessage = useStore((s) => s.addMessage);
 const updateConversation = useStore((s) => s.updateConversation);
@@ -69,6 +71,13 @@ const setTheme = useStore((s) => s.setTheme);
       socketInstance.on("disconnect", () => {
         setIsConnected(false);
       });
+
+      // Send heartbeat every 60 seconds to keep user marked as online
+      const heartbeatInterval = setInterval(() => {
+        if (socketInstance.connected) {
+          socketInstance.emit("heartbeat");
+        }
+      }, 60000);
 
       const handleIncomingMessage = (message) => {
         console.log("Received message in Home component:", message);
@@ -140,6 +149,7 @@ const setTheme = useStore((s) => s.setTheme);
 
       return () => {
         disconnectSocket();
+        clearInterval(heartbeatInterval);
         // Fix: Change "receive_message" to "receiver_message" to match backend
         socketInstance.off("receiver_message", handleIncomingMessage);
         socketInstance.off("message_read", handleMessageRead);
@@ -151,6 +161,41 @@ const setTheme = useStore((s) => s.setTheme);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?._id]);
+
+  // Add periodic status updates for better real-time experience
+  useEffect(() => {
+    if (!socket || !user?._id) return;
+
+    // Request status updates for all contacts periodically
+    const updateContactStatuses = () => {
+      if (contacts && contacts.length > 0) {
+        // Limit to 10 contacts at a time to avoid overwhelming the server
+        const contactsToUpdate = contacts.slice(0, 10);
+        contactsToUpdate.forEach(contact => {
+          if (contact._id !== user._id) {
+            socket.emit("get_user_status", contact._id, (response) => {
+              if (response) {
+                updateUserPresence(response.userId, {
+                  isOnline: response.isOnline,
+                  lastSeen: response.lastSeen
+                });
+              }
+            });
+          }
+        });
+      }
+    };
+
+    // Update statuses immediately on connection
+    updateContactStatuses();
+
+    // Set up periodic updates every 30 seconds
+    const interval = setInterval(updateContactStatuses, 30000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [socket, user?._id, contacts]);
 
   const handleLogout = async () => {
     try {

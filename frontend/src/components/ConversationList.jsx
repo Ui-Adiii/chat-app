@@ -11,12 +11,19 @@ import { Loader } from "lucide-react";
 const ConversationList = ({ onSelectConversation, selectedConversationId }) => {
   const { conversations, setConversations, contacts, setContacts, user } = useStore();
   const [loading, setLoading] = useState(true);
+  // Add a key to force re-render when contacts change
+  const [updateKey, setUpdateKey] = useState(0);
 
   useEffect(() => {
     fetchConversations();
     fetchUsers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Add effect to update key when contacts change
+  useEffect(() => {
+    setUpdateKey(prev => prev + 1);
+  }, [contacts]);
 
   const fetchConversations = async () => {
     try {
@@ -65,7 +72,7 @@ const ConversationList = ({ onSelectConversation, selectedConversationId }) => {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full" key={updateKey}>
       <div className="p-2 sm:p-4 border-b shrink-0">
         <h2 className="text-base sm:text-lg font-semibold">Chats</h2>
       </div>
