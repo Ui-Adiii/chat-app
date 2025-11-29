@@ -50,44 +50,39 @@ const Login = () => {
   // New function for password-based login/register
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
-    setloader(true);
-  
     try {
+      setloader(true);
       let data;
-  
+      
       if (isRegistering) {
         data = await register(email, password);
       } else {
         data = await login(email, password);
       }
-  
-      if (data.status !== "success") {
+      
+      if (data.status === "success") {
+        const user = data?.data?.user;
+        // Check if user needs to complete profile (newly registered users)
+        if (!user?.username) {
+          setUser(user);
+          setStep(2); // Go to profile setup step
+        } else {
+          // Existing user with completed profile
+          setUser(user);
+          resetLoginState();
+          toast.success(isRegistering ? "Registered successfully" : "Logged in successfully");
+          navigate("/");
+        }
+      } else {
         toast.error(data.message);
-        return;
       }
-  
-      const user = data?.data?.user;
-      setUser(user);
-  
-      // NEW USERS → Go to Step 2
-      if (!user.username) {
-        setStep(2);
-        return;
-      }
-  
-      // OLD USERS → Direct Login
-      resetLoginState();
-      toast.success(isRegistering ? "Registered successfully" : "Logged in successfully");
-      navigate("/");
-  
-    } catch (err) {
-      console.error(err);
-      toast.error("Unexpected error, try again.");
+    } catch (error) {
+      console.error("Password auth error:", error);
+      toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setloader(false);
     }
   };
-  
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
