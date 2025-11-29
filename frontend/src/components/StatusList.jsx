@@ -188,7 +188,7 @@ const StatusList = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-b from-background to-muted/20">
+    <div className="flex flex-col min-h-0 bg-gradient-to-b from-background to-muted/20">
       <div className="p-3 sm:p-4 border-b bg-background/80 backdrop-blur-sm shrink-0">
         <div className="flex items-center justify-between">
           <div>
@@ -209,8 +209,8 @@ const StatusList = () => {
           </Button>
         </div>
       </div>
-      <ScrollArea className="flex-1">
-  <div className="p-4 flex  gap-2 md:gap-4 lg:gap-6">
+        <ScrollArea className="flex-1 min-h-0 overflow-auto">
+      <div className="p-4 flex gap-2 md:gap-4 lg:gap-6 min-h-0">
 
     {/* If no statuses */}
     {Object.entries(groupedStatuses).length === 0 ? (
@@ -227,7 +227,7 @@ const StatusList = () => {
         return (
           <div
             key={userId}
-            className="flex flex-col items-center cursor-pointer group"
+            className="flex flex-col items-center cursor-pointer group select-none outline-none focus:outline-none"
             onClick={() => {
               handleViewStatus(latest._id);
               setViewingStatusId(latest._id);
@@ -267,12 +267,13 @@ const StatusList = () => {
             <p className="
               mt-2 text-sm font-medium text-center truncate w-24
               group-hover:text-primary transition-colors
+            select-none caret-transparent
             ">
               {isMine ? "My Status" : statusUser?.username}
             </p>
 
             {/* Time */}
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-[11px] text-muted-foreground select-none caret-transparent">
               {formatTimestamp(latest.createdAt)}
             </p>
           </div>

@@ -72,12 +72,12 @@ const ConversationList = ({ onSelectConversation, selectedConversationId }) => {
   }
 
   return (
-    <div className="flex flex-col h-screen" key={updateKey}>
+    <div className="flex flex-col min-h-0" key={updateKey}>
       <div className="p-2 sm:p-4 border-b shrink-0">
         <h2 className="text-base sm:text-lg font-semibold">Chats</h2>
       </div>
-      <ScrollArea className="flex-1">
-        <div className="p-1 sm:p-2">
+      <ScrollArea className="flex-1 min-h-0 overflow-auto">
+        <div className="p-1 sm:p-2 min-h-0">
           {conversations.length === 0 && contacts.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
               No conversations yet
@@ -94,7 +94,7 @@ const ConversationList = ({ onSelectConversation, selectedConversationId }) => {
                   <div
                     key={conversation._id}
                     onClick={() => onSelectConversation(conversation)}
-                    className={`p-2 sm:p-3 rounded-lg cursor-pointer transition-colors mb-1 sm:mb-2 ${
+                    className={`p-2 sm:p-3 rounded-lg cursor-pointer transition-colors mb-1 sm:mb-2 select-none outline-none focus:outline-none focus-visible:outline-none ${
                       selectedConversationId === conversation._id
                         ? "bg-accent"
                         : "hover:bg-accent/50"
@@ -114,7 +114,7 @@ const ConversationList = ({ onSelectConversation, selectedConversationId }) => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-1">
-                          <p className="font-medium truncate text-sm sm:text-base">
+                          <p className="font-medium truncate text-sm sm:text-base select-none caret-transparent">
                             {otherUser.username || "Unknown"}
                           </p>
                           {conversation.lastMessage && (
@@ -124,7 +124,7 @@ const ConversationList = ({ onSelectConversation, selectedConversationId }) => {
                           )}
                         </div>
                         <div className="flex items-center justify-between gap-2">
-                          <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                          <p className="text-xs sm:text-sm text-muted-foreground truncate select-none caret-transparent">
                             {getLastMessagePreview(conversation)}
                           </p>
                           {conversation.unreadCount > 0 && (
@@ -152,7 +152,7 @@ const ConversationList = ({ onSelectConversation, selectedConversationId }) => {
                         unreadCount: 0,
                       })
                     }
-                    className="p-3 rounded-lg cursor-pointer transition-colors mb-2 hover:bg-accent/50"
+                    className="p-3 rounded-lg cursor-pointer transition-colors mb-2 hover:bg-accent/50 select-none outline-none focus:outline-none focus-visible:outline-none"
                   >
                     <div className="flex items-center gap-3">
                       <div className="relative">
@@ -167,10 +167,10 @@ const ConversationList = ({ onSelectConversation, selectedConversationId }) => {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">
+                        <p className="font-medium truncate select-none caret-transparent">
                           {userItem.username || "Unknown"}
                         </p>
-                        <p className="text-sm text-muted-foreground truncate">
+                        <p className="text-sm text-muted-foreground truncate select-none caret-transparent">
                           {userItem.about || "No status"}
                         </p>
                       </div>

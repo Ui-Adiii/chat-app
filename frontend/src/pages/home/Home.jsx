@@ -319,7 +319,7 @@ const setTheme = useStore((s) => s.setTheme);
   return (
     <div className="h-screen flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="border-b bg-background shrink-0">
+      <header className="border-b bg-background  shrink-0">
         <div className="flex items-center justify-between px-2 sm:px-4 py-2 sm:py-3">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <Avatar className="h-8 w-8 sm:h-10 sm:w-10 shrink-0">

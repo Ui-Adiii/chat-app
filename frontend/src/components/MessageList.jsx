@@ -78,8 +78,8 @@ const MessageList = ({ conversationId, otherParticipant }) => {
 
   return (
     <>
-    <ScrollArea className="flex-1 p-2 sm:p-4" ref={scrollRef}>
-      <div className="space-y-2 sm:space-y-4">
+    <ScrollArea className="flex-1 p-2 sm:p-4 min-h-0 overflow-auto" ref={scrollRef}>
+      <div className="space-y-2 sm:space-y-4 min-h-0">
         {conversationMessages.length === 0 ? (
           <div className="text-center text-muted-foreground py-8 text-sm sm:text-base">
             No messages yet. Start a conversation!
@@ -90,7 +90,7 @@ const MessageList = ({ conversationId, otherParticipant }) => {
             return (
               <div
                 key={message._id}
-                className={`flex gap-2 sm:gap-3 ${isFromMe ? "flex-row-reverse" : "flex-row"}`}
+                className={`flex gap-2 sm:gap-3 ${isFromMe ? "flex-row-reverse" : "flex-row"} select-none outline-none focus:outline-none`}
               >
                 {!isFromMe && (
                   <Avatar className="h-7 w-7 sm:h-8 sm:w-8 shrink-0">
@@ -106,7 +106,7 @@ const MessageList = ({ conversationId, otherParticipant }) => {
                   }`}
                 >
                   {!isFromMe && (
-                    <p className="text-xs text-muted-foreground mb-1">
+                    <p className="text-xs text-muted-foreground mb-1 select-none caret-transparent">
                       {message.sender?.username || "Unknown"}
                     </p>
                   )}
@@ -145,7 +145,7 @@ const MessageList = ({ conversationId, otherParticipant }) => {
                       />
                     )}
                     {message.content && (
-                      <p className="text-xs sm:text-sm whitespace-pre-wrap wrap-break-word">{message.content}</p>
+                      <p className="text-xs sm:text-sm whitespace-pre-wrap wrap-break-word select-none caret-transparent">{message.content}</p>
                     )}
                   </div>
                   <div className="flex items-center gap-2 mt-0.5 sm:mt-1">
