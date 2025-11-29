@@ -72,7 +72,7 @@ const ConversationList = ({ onSelectConversation, selectedConversationId }) => {
   }
 
   return (
-    <div className="flex flex-col h-full" key={updateKey}>
+    <div className="flex flex-col h-screen" key={updateKey}>
       <div className="p-2 sm:p-4 border-b shrink-0">
         <h2 className="text-base sm:text-lg font-semibold">Chats</h2>
       </div>
