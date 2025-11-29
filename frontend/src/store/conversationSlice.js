@@ -5,18 +5,28 @@ const createConversationSlice = (set) => ({
   setConversations: (conversations) => set({ conversations }),
   setContacts: (contacts) => set({ contacts }),
   addConversation: (conversation) =>
-    set((state) => ({
-      conversations: [
-        conversation,
-        ...state.conversations.filter((c) => c._id !== conversation._id),
-      ],
-    })),
+    set((state) => {
+      console.log("Adding conversation:", conversation);
+      const newState = {
+        conversations: [
+          conversation,
+          ...state.conversations.filter((c) => c._id !== conversation._id),
+        ],
+      };
+      console.log("New conversations state:", newState.conversations);
+      return newState;
+    }),
   updateConversation: (conversationId, updates) =>
-    set((state) => ({
-      conversations: state.conversations.map((c) =>
-        c._id === conversationId ? { ...c, ...updates } : c
-      ),
-    })),
+    set((state) => {
+      console.log("Updating conversation:", conversationId, updates);
+      const newState = {
+        conversations: state.conversations.map((c) =>
+          c._id === conversationId ? { ...c, ...updates } : c
+        ),
+      };
+      console.log("Updated conversations:", newState.conversations);
+      return newState;
+    }),
   updateUserPresence: (userId, { isOnline, lastSeen }) =>
     set((state) => {
       const updateParticipants = (participants = []) =>

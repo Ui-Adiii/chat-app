@@ -71,10 +71,15 @@ const setTheme = useStore((s) => s.setTheme);
       });
 
       const handleIncomingMessage = (message) => {
+        console.log("Received message in Home component:", message);
         const { selectedConversation: currentSelectedConversation, conversations: currentConversations } =
           useStore.getState();
 
+        console.log("Current selected conversation:", currentSelectedConversation);
+        console.log("Message conversation ID:", message.conversation);
+
         if (currentSelectedConversation?._id === message.conversation) {
+          console.log("Adding message to current conversation");
           addMessage(message.conversation, message);
         }
 
@@ -83,6 +88,7 @@ const setTheme = useStore((s) => s.setTheme);
         );
 
         if (existingConversation) {
+          console.log("Updating existing conversation");
           updateConversation(message.conversation, {
             lastMessage: message,
             unreadCount:
@@ -91,6 +97,7 @@ const setTheme = useStore((s) => s.setTheme);
                 : (existingConversation.unreadCount || 0) + 1,
           });
         } else {
+          console.log("Adding new conversation");
           addConversation({
             _id: message.conversation,
             participants: [message.sender, message.receiver],
@@ -123,8 +130,8 @@ const setTheme = useStore((s) => s.setTheme);
         // This will be handled in StatusList component
       };
 
-      // Fix: Change "receiver_message" to "receive_message" to match backend
-      socketInstance.on("receive_message", handleIncomingMessage);
+      // Fix: Change "receive_message" to "receiver_message" to match backend
+      socketInstance.on("receiver_message", handleIncomingMessage);
       socketInstance.on("message_read", handleMessageRead);
       socketInstance.on("user_status", handleUserStatus);
       socketInstance.on("new_status", handleNewStatus);
@@ -133,8 +140,8 @@ const setTheme = useStore((s) => s.setTheme);
 
       return () => {
         disconnectSocket();
-        // Fix: Change "receiver_message" to "receive_message" to match backend
-        socketInstance.off("receive_message", handleIncomingMessage);
+        // Fix: Change "receive_message" to "receiver_message" to match backend
+        socketInstance.off("receiver_message", handleIncomingMessage);
         socketInstance.off("message_read", handleMessageRead);
         socketInstance.off("user_status", handleUserStatus);
         socketInstance.off("new_status", handleNewStatus);

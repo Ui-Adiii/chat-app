@@ -8,12 +8,20 @@ const createMessageSlice = (set) => ({
       },
     })),
   addMessage: (conversationId, message) =>
-    set((state) => ({
-      messages: {
-        ...state.messages,
-        [conversationId]: [...(state.messages[conversationId] || []), message],
-      },
-    })),
+    set((state) => {
+      console.log("Adding message to conversation:", conversationId, message);
+      const newState = {
+        messages: {
+          ...state.messages,
+          [conversationId]: [
+            ...(state.messages[conversationId] || []),
+            message,
+          ],
+        },
+      };
+      console.log("New messages state:", newState.messages[conversationId]);
+      return newState;
+    }),
   updateMessage: (conversationId, messageId, updates) =>
     set((state) => ({
       messages: {

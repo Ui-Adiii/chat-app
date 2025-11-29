@@ -48,10 +48,14 @@ const sendMessage = async (req, res) => {
 
     if (req.io && req.socketUserMap) {
       const receiverSocketId = req.socketUserMap.get(receiverId);
+      console.log("Receiver socket ID:", receiverSocketId);
       if (receiverSocketId) {
+        console.log("Emitting receiver_message to:", receiverSocketId);
         req.io.to(receiverSocketId).emit("receiver_message", populatedMessage);
         message.messageStatus = "delivered";
         await message.save();
+      } else {
+        console.log("Receiver not connected");
       }
     }
 
