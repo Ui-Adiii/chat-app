@@ -49,7 +49,7 @@ const sendMessage = async (req, res) => {
     if (req.io && req.socketUserMap) {
       const receiverSocketId = req.socketUserMap.get(receiverId);
       if (receiverSocketId) {
-        req.io.to(receiverSocketId).emit("receive_message", populatedMessage);
+        req.io.to(receiverSocketId).emit("receiver_message", populatedMessage);
         message.messageStatus = "delivered";
         await message.save();
       }

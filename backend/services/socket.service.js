@@ -93,14 +93,14 @@ const initializeSocket = (server) => {
       }
       userTyping[`${conversationId}_timeout`] = setTimeout(() => {
         userTyping[conversationId] = false;
-        socket.to(receiverId).emit("user_typing", {
+        io.to(receiverId).emit("user_typing", {
           userId,
           conversationId,
           isTyping: false,
         });
       }, 3000);
 
-      socket.to(receiverId).emit("user_typing", {
+      io.to(receiverId).emit("user_typing", {
         userId,
         conversationId,
         isTyping: true,
@@ -118,7 +118,7 @@ const initializeSocket = (server) => {
         }
       }
 
-      socket.to(receiverId).emit("user_typing", {
+      io.to(receiverId).emit("user_typing", {
         userId,
         conversationId,
         isTyping: false,

@@ -28,7 +28,9 @@ const MessageInput = ({ conversationId, receiverId }) => {
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
+      // Stop typing indicator when component unmounts or conversation changes
       if (isTypingRef.current && socket && conversationId && receiverId) {
+        isTypingRef.current = false;
         socket.emit("typing_stop", { conversationId, receiverId });
       }
     };
@@ -37,21 +39,24 @@ const MessageInput = ({ conversationId, receiverId }) => {
   const handleTyping = () => {
     if (!socket || !conversationId || !receiverId || !user?._id) return;
 
+    // Always emit typing start event when user types
     if (!isTypingRef.current) {
       isTypingRef.current = true;
       socket.emit("typing_start", { conversationId, receiverId });
     }
 
+    // Clear any existing timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
 
+    // Set a new timeout to stop typing indicator
     typingTimeoutRef.current = setTimeout(() => {
       if (isTypingRef.current) {
         isTypingRef.current = false;
         socket.emit("typing_stop", { conversationId, receiverId });
       }
-    }, 1000);
+    }, 3000);
   };
 
   const handleFileSelect = (e) => {

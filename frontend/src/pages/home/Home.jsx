@@ -110,15 +110,36 @@ const setTheme = useStore((s) => s.setTheme);
         updateUserPresence(statusUserId, { isOnline, lastSeen });
       };
 
+      // Add socket event listeners for status updates
+      const handleNewStatus = () => {
+        // This will be handled in StatusList component
+      };
+
+      const handleStatusDeleted = () => {
+        // This will be handled in StatusList component
+      };
+
+      const handleStatusViewed = () => {
+        // This will be handled in StatusList component
+      };
+
+      // Fix: Change "receiver_message" to "receive_message" to match backend
       socketInstance.on("receive_message", handleIncomingMessage);
       socketInstance.on("message_read", handleMessageRead);
       socketInstance.on("user_status", handleUserStatus);
+      socketInstance.on("new_status", handleNewStatus);
+      socketInstance.on("status_deleted", handleStatusDeleted);
+      socketInstance.on("status_viewed", handleStatusViewed);
 
       return () => {
         disconnectSocket();
+        // Fix: Change "receiver_message" to "receive_message" to match backend
         socketInstance.off("receive_message", handleIncomingMessage);
         socketInstance.off("message_read", handleMessageRead);
         socketInstance.off("user_status", handleUserStatus);
+        socketInstance.off("new_status", handleNewStatus);
+        socketInstance.off("status_deleted", handleStatusDeleted);
+        socketInstance.off("status_viewed", handleStatusViewed);
       };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

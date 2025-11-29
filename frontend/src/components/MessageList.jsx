@@ -14,7 +14,10 @@ const MessageList = ({ conversationId, otherParticipant }) => {
   const scrollRef = useRef(null);
   const messagesEndRef = useRef(null);
 
-  const conversationMessages = React.useMemo(() => messages[conversationId] || [], [messages, conversationId]);
+  const conversationMessages = React.useMemo(() => {
+    console.log("Messages for conversation:", conversationId, messages[conversationId]);
+    return messages[conversationId] || [];
+  }, [messages, conversationId]);
 
   const fetchMessages = React.useCallback(async () => {
     if (!conversationId || conversationId.startsWith("new-")) return;

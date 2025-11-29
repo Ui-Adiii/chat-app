@@ -38,6 +38,7 @@ const Login = () => {
   const [about, setabout] = useState("");
   const [agreed, setagreed] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [newUser, setNewUser] = useState(null); // Temporary storage for new user data
 
   const handleChangeImage = (e) => {
     const file = e.target.files[0];
@@ -62,9 +63,10 @@ const Login = () => {
       
       if (data.status === "success") {
         const user = data?.data?.user;
+        
         // Check if user needs to complete profile (newly registered users)
         if (!user?.username) {
-          setUser(user);
+          setNewUser(user); // Store user data temporarily
           setStep(2); // Go to profile setup step
         } else {
           // Existing user with completed profile
@@ -77,7 +79,6 @@ const Login = () => {
         toast.error(data.message);
       }
     } catch (error) {
-      console.error("Password auth error:", error);
       toast.error("An unexpected error occurred. Please try again.");
     } finally {
       setloader(false);
@@ -86,6 +87,11 @@ const Login = () => {
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
+    if (!newUser) {
+      toast.error("User data not found. Please try again.");
+      return;
+    }
+    
     const form = new FormData();
     form.append("username", username);
     form.append("agreed", agreed ? "true" : "false");
@@ -95,7 +101,9 @@ const Login = () => {
       setloader(true);
       const data = await updateProfile(form);
       if (data.status === "success") {
+        // Now set the user as authenticated
         setUser(data?.data);
+        setNewUser(null); // Clear temporary user data
         resetLoginState();
         toast.success("Profile updated successfully");
         navigate("/");
@@ -103,8 +111,7 @@ const Login = () => {
         toast.error(data?.message);
       }
     } catch (error) {
-      console.error("Update profile error:", error);
-      toast.error("Failed to update profile. Please try again.");
+      toast.error(error.message);
     } finally {
       setloader(false);
     }

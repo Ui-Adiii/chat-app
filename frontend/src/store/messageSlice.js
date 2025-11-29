@@ -27,7 +27,9 @@ const createMessageSlice = (set) => ({
     set((state) => ({
       messages: {
         ...state.messages,
-        [conversationId]: (state.messages[conversationId] || []).filter((m) => m._id !== messageId),
+        [conversationId]: (state.messages[conversationId] || []).filter(
+          (m) => m._id !== messageId
+        ),
       },
     })),
   clearMessages: () => set({ messages: {} }),

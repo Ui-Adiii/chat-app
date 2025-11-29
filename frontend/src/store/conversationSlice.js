@@ -6,7 +6,10 @@ const createConversationSlice = (set) => ({
   setContacts: (contacts) => set({ contacts }),
   addConversation: (conversation) =>
     set((state) => ({
-      conversations: [conversation, ...state.conversations.filter((c) => c._id !== conversation._id)],
+      conversations: [
+        conversation,
+        ...state.conversations.filter((c) => c._id !== conversation._id),
+      ],
     })),
   updateConversation: (conversationId, updates) =>
     set((state) => ({
@@ -32,7 +35,9 @@ const createConversationSlice = (set) => ({
         selectedConversation: state.selectedConversation
           ? {
               ...state.selectedConversation,
-              participants: updateParticipants(state.selectedConversation.participants),
+              participants: updateParticipants(
+                state.selectedConversation.participants
+              ),
             }
           : state.selectedConversation,
         contacts: state.contacts.map((contact) =>
@@ -52,8 +57,10 @@ const createConversationSlice = (set) => ({
         ),
       };
     }),
-  setSelectedConversation: (conversation) => set({ selectedConversation: conversation }),
-  clearConversations: () => set({ conversations: [], contacts: [], selectedConversation: null }),
+  setSelectedConversation: (conversation) =>
+    set({ selectedConversation: conversation }),
+  clearConversations: () =>
+    set({ conversations: [], contacts: [], selectedConversation: null }),
 });
 
 export default createConversationSlice;
